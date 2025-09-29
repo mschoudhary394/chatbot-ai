@@ -1,40 +1,18 @@
 import os
 import requests
+import google.generativeai as genai
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Set your Gemini API key in environment variables
-
+genai.configure(api_key="AIzaSyCJ_ejqTU0jJsUqRh7ImAV6ck_-ww9uLcg")
 @app.route('/chat', methods=['POST'])
 def chat():
-    data = request.get_json()
-    prompt = data.get('prompt', '')
-
-    headers = {
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ]
-    }
-    response = requests.post(
-        f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-        headers=headers,
-        json=payload
-    )
-    if response.status_code == 200:
-        gemini_output = response.json()
-        text = gemini_output['candidates'][0]['content']['parts'][0]['text']
-        return jsonify({"response": text})
-    else:
-        return jsonify({"error": "Failed to get response from Gemini API"}), 500
+    data=request.get_json()
+    prompt=data.get("prompt")
+    model=genai.GenerativeModel('gemini-2.5-flash')
+    response=model.generate_content(prompt)
+    return jsonify(response.text)
 
 if __name__ == '__main__':
     app.run(debug=True)
